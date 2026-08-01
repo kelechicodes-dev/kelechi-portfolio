@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Truth or Dare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-a: #2a0e3f;
+    --bg-b: #4a1c46;
+    --surface: rgba(255,255,255,0.07);
+    --surface-strong: rgba(255,255,255,0.12);
+    --line: rgba(255,255,255,0.14);
+    --text: #fdf5ff;
+    --text-dim: #d0aede;
+    --gold: #ffb84d;
+    --coral: #ff6b6b;
+
+    --friends: #46d6a8;
+    --friends-dim: #2a8f6e;
+    --couples: #ff6ea8;
+    --couples-dim: #b84a78;
+    --spicy: #ff4d5e;
+    --spicy-dim: #b8323f;
+    --family: #6c9bff;
+    --family-dim: #4a6fc2;
+
+    --cat: var(--friends);
+    --cat-dim: var(--friends-dim);
+
+    --font-display: 'Baloo 2', sans-serif;
+    --font-body: 'Manrope', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: var(--font-body);
+    color: var(--text);
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,184,77,0.10) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, var(--cat) 0%, transparent 40%),
+      linear-gradient(160deg, var(--bg-a), var(--bg-b));
+    background-attachment: fixed;
+    transition: background 0.6s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+
+  .wrap { width: 100%; max-width: 520px; }
+
+  header { text-align: center; margin-bottom: 32px; }
+  .title {
+    font-family: var(--font-display); font-weight: 800;
+    font-size: clamp(2.2rem, 8vw, 3rem);
+    letter-spacing: -0.01em;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.35);
+  }
+  .title .or { color: var(--cat); transition: color 0.5s ease; }
+  .subtitle { color: var(--text-dim); font-size: 15px; margin-top: 6px; }
+
+  /* ---------- CATEGORY PICKER ---------- */
+  .cat-picker { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+  .cat-btn {
+    font-family: var(--font-display); font-weight: 600; font-size: 15px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 2px solid var(--btn-color);
+    background: transparent;
+    color: var(--btn-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .cat-btn.active { background: var(--btn-color); color: #1a0a24; box-shadow: 0 6px 18px -6px var(--btn-color); }
+  .cat-btn:hover { transform: translateY(-2px); }
+
+  /* ---------- CARD STAGE ---------- */
+  .stage { perspective: 1200px; margin-bottom: 24px; }
+  .card {
+    position: relative;
+    width: 100%;
+    min-height: 320px;
+    border-radius: 24px;
+    transform-style: preserve-3d;
+    transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute; inset: 0;
+    border-radius: 24px;
+    backface-visibility: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px 28px;
+    text-align: center;
+  }
+  .card-front {
+    background: var(--surface);
+    border: 2px dashed var(--line);
+  }
+  .card-back {
+    background: linear-gradient(160deg, var(--cat), var(--cat-dim));
+    transform: rotateY(180deg);
+    color: #1a0a24;
+    box-shadow: 0 20px 60px -20px var(--cat);
+  }
+
+  .cat-emoji { font-size: 44px; margin-bottom: 12px; }
+  .cat-name { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--cat); transition: color 0.4s ease; }
+  .cat-hint { color: var(--text-dim); font-size: 14px; margin-top: 8px; max-width: 30ch; }
+
+  .choice-row { display: flex; gap: 14px; margin-top: 22px; }
+  .choice-btn {
+    font-family: var(--font-display); font-weight: 700; font-size: 17px;
+    padding: 14px 26px; border-radius: 14px; border: none; cursor: pointer;
+    color: #1a0a24;
+    transition: transform 0.15s ease;
+  }
+  .choice-btn:hover { transform: translateY(-2px) scale(1.03); }
+  .choice-btn.truth { background: var(--gold); }
+  .choice-btn.dare { background: var(--coral); }
+
+  .type-tag {
+    font-family: var(--font-display); font-weight: 700; font-size: 13px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(26,10,36,0.25);
+    padding: 5px 14px; border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .question-text { font-family: var(--font-display); font-weight: 600; font-size: 23px; line-height: 1.3; }
+
+  .stage-actions { display: flex; gap: 12px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+  .ghost-btn {
+    font-family: var(--font-body); font-weight: 600; font-size: 14px;
+    padding: 10px 18px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--line);
+    color: var(--text); cursor: pointer;
+  }
+  .ghost-btn:hover { background: var(--surface-strong); }
+
+  /* ---------- CUSTOM QUESTIONS ---------- */
+  .custom-panel {
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px;
+  }
+  .panel-toggle {
+    width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    background: none; border: none; color: var(--text);
+    font-family: var(--font-display); font-weight: 600; font-size: 16px;
+    cursor: pointer; padding: 0;
+  }
+  .panel-toggle .chev { transition: transform 0.25s ease; }
+  .panel-toggle.open .chev { transform: rotate(180deg); }
+
+  .panel-body { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
+  .panel-body.open { max-height: 900px; }
+  .panel-inner { padding-top: 18px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .field label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; font-weight: 600; }
+  select, textarea, input[type="text"] {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: var(--font-body); font-size: 14px;
+    resize: vertical;
+  }
+  select:focus, textarea:focus, input:focus { outline: none; border-color: var(--cat); }
+
+  .add-btn {
+    width: 100%;
+    font-family: var(--font-display); font-weight: 700; font-size: 15px;
+    background: var(--cat); color: #1a0a24;
+    border: none; border-radius: 10px; padding: 12px;
+    cursor: pointer; transition: filter 0.2s ease;
+  }
+  .add-btn:hover { filter: brightness(1.1); }
+
+  .custom-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+  .custom-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(0,0,0,0.18); border-radius: 10px; padding: 10px 12px;
+    font-size: 13px;
+  }
+  .custom-item .meta { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+  .custom-item .txt { color: var(--text); }
+  .del-btn {
+    flex-shrink: 0; background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 16px; line-height: 1; padding: 4px 6px; border-radius: 6px;
+  }
+  .del-btn:hover { color: var(--spicy); background: rgba(255,77,94,0.12); }
+  .empty-note { color: var(--text-dim); font-size: 13px; text-align: center; padding: 10px 0; }
+
+  footer { margin-top: 30px; text-align: center; color: var(--text-dim); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="title">Truth <span class="or">or</span> Dare</div>
+    <div class="subtitle">Pick a category, then take your shot.</div>
+  </header>
+
+  <div class="cat-picker" id="catPicker"></div>
+
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="card-face card-front">
+        <div class="cat-emoji" id="frontEmoji">🎉</div>
+        <div class="cat-name" id="frontName">Friends</div>
+        <div class="cat-hint">Choose Truth or Dare to flip the card.</div>
+        <div class="choice-row">
+          <button class="choice-btn truth" id="truthBtn">Truth</button>
+          <button class="choice-btn dare" id="dareBtn">Dare</button>
+        </div>
+      </div>
+      <div class="card-face card-back">
+        <div class="type-tag" id="backType">Truth</div>
+        <div class="question-text" id="backQuestion">Question goes here</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage-actions" id="stageActions" style="display:none;">
+    <button class="ghost-btn" id="againBtn">Same type, new question</button>
+    <button class="ghost-btn" id="backBtn">Choose again</button>
+  </div>
+
+  <div class="custom-panel">
+    <button class="panel-toggle" id="panelToggle">
+      <span>Add your own questions</span>
+      <span class="chev">▾</span>
+    </button>
+    <div class="panel-body" id="panelBody">
+      <div class="panel-inner">
+        <div class="form-grid">
+          <div class="field">
+            <label for="qCategory">Category</label>
+            <select id="qCategory">
+              <option value="friends">Friends</option>
+              <option value="couples">Couples</option>
+              <option value="spicy">Spicy</option>
+              <option value="family">Family</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="qType">Type</label>
+            <select id="qType">
+              <option value="truth">Truth</option>
+              <option value="dare">Dare</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom: 10px;">
+          <label for="qText">Question</label>
+          <textarea id="qText" rows="2" placeholder="Type your question..."></textarea>
+        </div>
+        <button class="add-btn" id="addBtn">Add question</button>
+
+        <div class="custom-list" id="customList"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Custom questions are saved on this device only.</footer>
+</div>
+
+<script>
+  const CATEGORIES = {
+    friends: { label: 'Friends', emoji: '🎉', color: '--friends', dim: '--friends-dim' },
+    couples: { label: 'Couples', emoji: '💕', color: '--couples', dim: '--couples-dim' },
+    spicy:   { label: 'Spicy',   emoji: '🔥', color: '--spicy',   dim: '--spicy-dim' },
+    family:  { label: 'Family',  emoji: '🏡', color: '--family',  dim: '--family-dim' },
+  };
+
+  const DEFAULT_QUESTIONS = {
+    friends: {
+      truth: [
+        "What's the most embarrassing thing in your search history?",
+        "Who in this group would you trust with a secret, no question?",
+        "What's a lie you told that almost got you caught?",
+        "What's the pettiest thing you've ever held a grudge over?",
+        "Who's the last person you stalked on social media?",
+        "What's something you pretend to like just to fit in?",
+      ],
+      dare: [
+        "Text the last person you called and say 'I know what you did.'",
+        "Let the group post anything they want on your story for 5 minutes.",
+        "Do your best impression of someone in this room.",
+        "Speak in an accent for the next three rounds.",
+        "Show the group your camera roll from a year ago.",
+        "Let someone else write your next text to a friend.",
+      ],
+    },
+    couples: {
+      truth: [
+        "What was your first impression of me?",
+        "What's one thing I do that you secretly love?",
+        "What's a habit of mine you'd never admit annoys you?",
+        "What's the most romantic thing you've ever done for someone?",
+        "What's something you want us to do together this year?",
+        "What made you realize you liked me?",
+      ],
+      dare: [
+        "Give your partner your best compliment, no jokes allowed.",
+        "Recreate your first date in 30 seconds.",
+        "Let your partner pick your outfit for tomorrow.",
+        "Write a short love note and read it out loud.",
+        "Slow dance for 20 seconds, no music.",
+        "Share your favorite memory of the two of you.",
+      ],
+    },
+    spicy: {
+      truth: [
+        "What's your idea of a perfect date night?",
+        "What's the boldest pickup line you've ever used or received?",
+        "What's a compliment you wish you got more often?",
+        "Who was your celebrity crush growing up?",
+        "What's the most confident thing you've ever worn?",
+        "What's a flirty text you've never had the guts to send?",
+      ],
+      dare: [
+        "Give your best flirty wink to the person across from you.",
+        "Do a 10-second dance like nobody's watching.",
+        "Send a bold compliment to your crush or partner right now.",
+        "Whisper your best pickup line to someone in the room.",
+        "Strike your most dramatic model pose for a photo.",
+        "Give the group your best 'confident entrance' walk.",
+      ],
+    },
+    family: {
+      truth: [
+        "What's a family tradition you actually love?",
+        "What's the funniest thing that's happened at a family gathering?",
+        "What's one thing you learned from a family member you're grateful for?",
+        "What's a rule growing up you secretly broke?",
+        "Who in the family do you think you're most like?",
+        "What's your favorite family memory from childhood?",
+      ],
+      dare: [
+        "Tell your best family joke, dad-joke style.",
+        "Do your best impression of a family member.",
+        "Share your most embarrassing childhood story.",
+        "Give everyone a genuine compliment, one at a time.",
+        "Sing the chorus of your favorite childhood song.",
+        "Show a childhood photo and explain what's happening.",
+      ],
+    },
+  };
+
+  const STORAGE_KEY = 'tod_custom_questions_v1';
+
+  function loadCustom() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return {};
+      return JSON.parse(raw);
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveCustom(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  let customQuestions = loadCustom();
+  let currentCategory = 'friends';
+  let currentType = null;
+  let usedIndexes = {};
+
+  function applyCategoryTheme(catKey) {
+    const cat = CATEGORIES[catKey];
+    document.documentElement.style.setProperty('--cat', `var(${cat.color})`);
+    document.documentElement.style.setProperty('--cat-dim', `var(${cat.dim})`);
+  }
+
+  function renderCatPicker() {
+    const el = document.getElementById('catPicker');
+    el.innerHTML = '';
+    Object.entries(CATEGORIES).forEach(([key, cat]) => {
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn' + (key === currentCategory ? ' active' : '');
+      btn.style.setProperty('--btn-color', `var(${cat.color})`);
+      btn.textContent = cat.emoji + ' ' + cat.label;
+      btn.addEventListener('click', () => selectCategory(key));
+      el.appendChild(btn);
+    });
+  }
+
+  function selectCategory(key) {
+    currentCategory = key;
+    applyCategoryTheme(key);
+    renderCatPicker();
+    resetCardFront();
+  }
+
+  function resetCardFront() {
+    const cat = CATEGORIES[currentCategory];
+    document.getElementById('frontEmoji').textContent = cat.emoji;
+    document.getElementById('frontName').textContent = cat.label;
+    document.getElementById('card').classList.remove('flipped');
+    document.getElementById('stageActions').style.display = 'none';
+    currentType = null;
+  }
+
+  function getPool(catKey, type) {
+    const base = (DEFAULT_QUESTIONS[catKey] && DEFAULT_QUESTIONS[catKey][type]) || [];
+    const custom = (customQuestions[catKey] && customQuestions[catKey][type]) || [];
+    return base.concat(custom);
+  }
+
+  function pickQuestion(type) {
+    currentType = type;
+    const pool = getPool(currentCategory, type);
+    if (pool.length === 0) {
+      document.getElementById('backType').textContent = type === 'truth' ? 'Truth' : 'Dare';
+      document.getElementById('backQuestion').textContent = "No questions here yet — add one below!";
+      document.getElementById('card').classList.add('flipped');
+      document.getElementById('stageActions').style.display = 'flex';
+      return;
+    }
+    const key = currentCategory + ':' + type;
+    if (!usedIndexes[key]) usedIndexes[key] = new Set();
+    if (usedIndexes[key].size >= pool.length) usedIndexes[key].clear();
+    let idx;
+    do { idx = Math.floor(Math.random() * pool.length); } while (usedIndexes[key].has(idx) && usedIndexes[key].size < pool.length);
+    usedIndexes[key].add(idx);
+
+    document.getElementById('backType').textContent = type === 'truth' ? 'Truth' : 'Dare';
+    document.getElementById('backQuestion').textContent = pool[idx];
+    document.getElementById('card').classList.add('flipped');
+    document.getElementById('stageActions').style.display = 'flex';
+  }
+
+  document.getElementById('truthBtn').addEventListener('click', () => pickQuestion('truth'));
+  document.getElementById('dareBtn').addEventListener('click', () => pickQuestion('dare'));
+  document.getElementById('againBtn').addEventListener('click', () => { if (currentType) pickQuestion(currentType); });
+  document.getElementById('backBtn').addEventListener('click', resetCardFront);
+
+  // ---------- Custom question panel ----------
+  const panelToggle = document.getElementById('panelToggle');
+  const panelBody = document.getElementById('panelBody');
+  panelToggle.addEventListener('click', () => {
+    const isOpen = panelBody.classList.toggle('open');
+    panelToggle.classList.toggle('open', isOpen);
+  });
+
+  function renderCustomList() {
+    const listEl = document.getElementById('customList');
+    listEl.innerHTML = '';
+    let count = 0;
+    Object.keys(CATEGORIES).forEach((catKey) => {
+      ['truth', 'dare'].forEach((type) => {
+        const items = (customQuestions[catKey] && customQuestions[catKey][type]) || [];
+        items.forEach((text, i) => {
+          count++;
+          const row = document.createElement('div');
+          row.className = 'custom-item';
+          const left = document.createElement('div');
+          left.innerHTML = `<div class="meta">${CATEGORIES[catKey].label} · ${type}</div><div class="txt">${escapeHtml(text)}</div>`;
+          const del = document.createElement('button');
+          del.className = 'del-btn';
+          del.textContent = '✕';
+          del.addEventListener('click', () => {
+            customQuestions[catKey][type].splice(i, 1);
+            saveCustom(customQuestions);
+            renderCustomList();
+          });
+          row.appendChild(left);
+          row.appendChild(del);
+          listEl.appendChild(row);
+        });
+      });
+    });
+    if (count === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-note';
+      empty.textContent = 'No custom questions yet.';
+      listEl.appendChild(empty);
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  document.getElementById('addBtn').addEventListener('click', () => {
+    const catKey = document.getElementById('qCategory').value;
+    const type = document.getElementById('qType').value;
+    const textEl = document.getElementById('qText');
+    const text = textEl.value.trim();
+    if (!text) return;
+
+    if (!customQuestions[catKey]) customQuestions[catKey] = { truth: [], dare: [] };
+    if (!customQuestions[catKey][type]) customQuestions[catKey][type] = [];
+    customQuestions[catKey][type].push(text);
+    saveCustom(customQuestions);
+    textEl.value = '';
+    renderCustomList();
+  });
+
+  // Init
+  applyCategoryTheme(currentCategory);
+  renderCatPicker();
+  renderCustomList();
+</script>
+
+</body>
+</html>
