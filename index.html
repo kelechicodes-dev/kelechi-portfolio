@@ -19,6 +19,7 @@
     --habit: #ffb454;
     --calc: #b892ff;
     --tod: #ff6ea8;
+    --pulse: #ff5d3a;
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'IBM Plex Sans', sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
@@ -410,6 +411,28 @@
           <a class="card-link" href="truth-or-dare.html">Play now</a>
         </div>
       </article>
+      <!-- Pulse -->
+<article class="card reveal" style="--card-accent: var(--pulse);">
+  <div class="card-screen" style="--screen-bg: linear-gradient(160deg, #2a0e3f, #3a1420);">
+    <div class="screen-content">
+      <div class="screen-glyph">🔴</div>
+      <div class="screen-label">Live results</div>
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:12px; font-size:20px;">
+        <span>📊</span><span>🗳️</span><span>📡</span>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-eyebrow">Live Poll</div>
+    <h3 class="card-name">Pulse</h3>
+    <p class="card-desc">Create a poll, share a QR code or link, and watch votes update live on every device — no sign-in needed.</p>
+    <div class="card-tags">
+      <span class="tag">Supabase Realtime</span>
+      <span class="tag">Vanilla JS</span>
+    </div>
+    <a class="card-link" href="https://kelechicodes-dev.github.io/pulse-poll/">Try it live</a>
+  </div>
+</article>
 
       <!-- Study Bud -->
       <article class="card reveal" style="--card-accent: #ffb668;">
@@ -470,12 +493,17 @@
         <div class="log-title">Kelechi Study Bud</div>
         <div class="log-desc">A voice-first AI study assistant — Gemini API behind a free Cloudflare Worker, speech in and out, camera note scanning, quiz mode, and calm ambient sound.</div>
       </div>
-      <div class="log-entry reveal">
-        <div class="log-tag">next up</div>
-        <div class="log-title">More to come</div>
-        <div class="log-desc">Still building — check back for the next project.</div>
-      </div>
-    </div>
+     <div class="log-entry reveal">
+  <div class="log-tag">sixth build</div>
+  <div class="log-title">Pulse</div>
+  <div class="log-desc">A live poll website — Supabase handles auth-free realtime voting. Hit a config.js 404 and a 127.0.0.1-vs-real-IP snag testing cross-device, fixed both, shipped it.</div>
+</div>
+
+<div class="log-entry reveal">
+  <div class="log-tag">next up</div>
+  <div class="log-title">More to come</div>
+  <div class="log-desc">Still building — check back for the next project.</div>
+</div>
   </div>
 </section>
 
