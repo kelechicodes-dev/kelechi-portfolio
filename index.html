@@ -12,9 +12,43 @@
     --bg: #0b1120;
     --surface: #121a2e;
     --surface-2: #182238;
+      body.has-cursor, body.has-cursor a, body.has-cursor button,
+  body.has-cursor input, body.has-cursor textarea, body.has-cursor .card { cursor: none; }
+
+  .cursor-dot, .cursor-ring {
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    border-radius: 50%;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+  }
+  .cursor-dot {
+    width: 6px; height: 6px;
+    background: var(--weather);
+    box-shadow: 0 0 8px var(--weather), 0 0 16px var(--weather);
+  }
+  .cursor-ring {
+    width: 34px; height: 34px;
+    border: 1px solid rgba(79,209,255,0.5);
+    transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .cursor-ring.active {
+    width: 48px; height: 48px;
+    border-color: var(--calc);
+    background: rgba(184,146,255,0.08);
+  }
+  @media (hover: none), (pointer: coarse) {
+    .cursor-dot, .cursor-ring { display: none; }
+  }
     --line: #26314a;
     --text: #eaf0ff;
     --text-dim: #8a99bb;
+      #bgCanvas {
+    position: fixed; inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
     --weather: #4fd1ff;
     --habit: #ffb454;
     --calc: #b892ff;
@@ -40,6 +74,9 @@
     font-family: var(--font-body);
     line-height: 1.5;
     overflow-x: hidden;
+     position: relative;
+    z-index: 0;
+    
   }
 
   a { color: inherit; text-decoration: none; }
@@ -150,6 +187,19 @@
     transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .reveal.visible { opacity: 1; transform: translateY(0); }
+    .card.reveal, .section-head.reveal { position: relative; overflow: hidden; }
+  .card.reveal::after, .section-head.reveal::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(100deg, transparent 35%, rgba(79,209,255,0.28) 50%, transparent 65%);
+    transform: translateX(-130%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .card.reveal.visible::after, .section-head.reveal.visible::after {
+    animation: sweep 0.85s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+  @keyframes sweep { to { transform: translateX(130%); } }
 
   /* ---------- SECTION LABELS ---------- */
   .section { padding: 72px 0; }
@@ -282,7 +332,7 @@
   <div class="wrap hero-grid">
     <div>
       <div class="kicker">status: shipping</div>
-      <h1>Learning mobile dev <span class="accent">one terminal error</span> at a time.</h1>
+    <h1>Breaking builds <span class="accent">so you don't have to.</span></h1>
       <p class="subhead">I'm Kelechi — building React Native + Expo apps from scratch, documenting every crash, fix, and small win along the way.</p>
 
       <div class="hero-stack">
@@ -712,6 +762,99 @@
 
   revealEls.forEach((el) => observer.observe(el));
 </script>
+  <script>
+  (function(){
+    const isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (isFinePointer) {
+      document.body.classList.add('has-cursor');
+      const dot = document.getElementById('cursorDot');
+      const ring = document.getElementById('cursorRing');
+      let mx = window.innerWidth/2, my = window.innerHeight/2;
+      let rx = mx, ry = my;
+      window.addEventListener('mousemove', (e) => {
+        mx = e.clientX; my = e.clientY;
+        dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+      });
+      function ringLoop(){
+        rx += (mx - rx) * 0.16;
+        ry += (my - ry) * 0.16;
+        ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+        requestAnimationFrame(ringLoop);
+      }
+      ringLoop();
+      document.querySelectorAll('a, button, input, textarea, .card, .pill').forEach(el => {
+        el.addEventListener('mouseenter', () => ring.classList.add('active'));
+        el.addEventListener('mouseleave', () => ring.classList.remove('active'));
+      });
+    }
+  })();
+
+  (function(){
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let w, h, dpr;
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio||1, 2);
+      w = window.innerWidth; h = window.innerHeight;
+      canvas.width = w*dpr; canvas.height = h*dpr;
+      canvas.style.width = w+'px'; canvas.style.height = h+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const COUNT = Math.min(70, Math.floor((window.innerWidth*window.innerHeight)/18000));
+    const colors = ['#4fd1ff', '#b892ff', '#ff5d3a'];
+    const pts = [];
+    for (let i=0;i<COUNT;i++){
+      pts.push({
+        x: Math.random()*w, y: Math.random()*h,
+        vx: (Math.random()-0.5)*0.15, vy:(Math.random()-0.5)*0.15,
+        r: 1 + Math.random()*1.4,
+        c: colors[Math.floor(Math.random()*colors.length)]
+      });
+    }
+
+    function frame(){
+      ctx.clearRect(0,0,w,h);
+      for (let i=0;i<pts.length;i++){
+        const p = pts[i];
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+      }
+      for (let i=0;i<pts.length;i++){
+        for (let j=i+1;j<pts.length;j++){
+          const a = pts[i], b = pts[j];
+          const dx = a.x-b.x, dy = a.y-b.y;
+          const dist = Math.sqrt(dx*dx+dy*dy);
+          if (dist < 130){
+            ctx.strokeStyle = 'rgba(79,209,255,' + (0.12 * (1 - dist/130)) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+            ctx.stroke();
+          }
+        }
+      }
+      for (let i=0;i<pts.length;i++){
+        const p = pts[i];
+        ctx.beginPath();
+        ctx.fillStyle = p.c;
+        ctx.globalAlpha = 0.6;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      if (!reduceMotion) requestAnimationFrame(frame);
+    }
+    frame();
+  })();
+</script>
 
 </body>
+  <canvas id="bgCanvas"></canvas>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
 </html>
